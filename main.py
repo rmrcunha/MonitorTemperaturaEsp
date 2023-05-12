@@ -9,13 +9,14 @@ import urequests as requests
 import ujson as json
 import machine
 import usocket as socket
-import re
-import uasyncio as asyncio
 import _thread as thread
 import usocket as socket
-import urandom as random
 from machine import Pin
+import ntptime
 timeout = 0
+
+#horaAtual = time.localtime(time.time() + ajustaHora)
+
 
 led = machine.Pin(25,Pin.OUT)
 led.value(1)
@@ -26,8 +27,8 @@ wlan = network.WLAN(network.STA_IF)
 wlan.active(False)
 time.sleep(0.5)
 wlan.active(True)
-nomeRede ='redeteste'
-senhaRede = 'redeteste23'
+nomeRede ='Cunha Oi Fibra'
+senhaRede = '26160903'
 wlan.connect(nomeRede,senhaRede)
 
 if not wlan.isconnected():
@@ -38,7 +39,7 @@ if not wlan.isconnected():
         time.sleep(1)
 
 if wlan.isconnected():
-    print('Connected in' + str(wlan.ifconfig()))
+    print('Connected in' + str(wlan.ifconfig()) + ' at ' + str(time.localtime()))
     
 else:
     print('Time out')
