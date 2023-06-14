@@ -81,9 +81,3 @@ else:
     print('Time out')
     print('reiniciando')
     machine.reset()
-
-
-
-
-
-
