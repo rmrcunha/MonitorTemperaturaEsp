@@ -1,35 +1,45 @@
-import network
-import time
+import AMG8833
+import firebase
 import machine
 from machine import Pin
-import firebase
-import AMG8833
+import network
+import onewire
+import time
+import utime
 
-""""
-função para definir pino como alimentação
-"""
+def pegaTemp(timer):
+    data8x8 = amg.pixel()
+    print(str(data8x8))
+    firebase.push(URL,str(data8x8))
+    print('Enviando temp')
+    gc.collect()
+    
+
+def dsx(pino):
+    dat = machine.Pin(pino)
+    ow = onewire.OneWire(dat)
+    global ds
+    ds = ds18x20.DS18X20(ow)
+    global roms
+    roms = ds.scan()
+
+def prova():
+    return ds.read_temp(roms[0])
+
+timer = machine.Timer(0)
+
 def E(pino):
     v = machine.Pin(pino, machine.Pin.OUT)
     v.value(1)
+    print('Pino {pino} utilizado como alimentação!');
 
 E(18)
-print('3v3 ligado')
 
-"""
-    azul = sda
-    proto 14
-"""
 sda_pin = machine.Pin(21)
-"""
-    amarelo = scl
-    proto 17
-"""
 scl_pin = machine.Pin(22)
 
 i2c = machine.I2C(scl = scl_pin,sda = sda_pin)
-print('i2c feito')
 
-#Verifica se há dispositivos i2c
 devices = i2c.scan()
 if len(devices) > 0:
     print("Dispositivos I2C encontrados:")
@@ -38,46 +48,39 @@ if len(devices) > 0:
 else:
     print("Nenhum dispositivo I2C encontrado.")
 
-#inicializa o AMG8833
 amg = AMG8833.AMG8833(i2c, addr = 0x69)
-
 
 timeout = 0
 
-#horaAtual = time.localtime(time.time() + ajustaHora)
-
-
-
-
 wlan = network.WLAN(network.STA_IF)
 
-#Restart wlan
-wlan.active(False)
-time.sleep(0.5)
-wlan.active(True)
-nomeRede ='Cunha Oi Fibra'
-senhaRede = '26160903'
+def restartWlan():
+    wlan.active(False)
+    time.sleep(0.5)
+    wlan.active(True)
+
+restartWlan()
+nomeRede =''
+senhaRede = ''
 wlan.connect(nomeRede,senhaRede)
+URL = 'monitordetemperatura-ab3b0-default-rtdb/Paciente'
 
 if not wlan.isconnected():
-    print('connecting...')
+    print('conectando...')
     while (not wlan.isconnected() and timeout < 5):
         print(5-timeout)
         timeout = timeout + 1
         time.sleep(1)
+    
 
 if wlan.isconnected():
-    print('Connected in' + str(wlan.ifconfig()) + ' at ' + str(time.localtime()))
-    URL = 'monitordetemperatura-ab3b0-default-rtdb/Paciente'
-    
-    while True:
-        # Leitura dos valores da matriz 8x8
-        data8x8 = amg.pixel()
-        firebase.push(URL, str(data8x8))
-        print('Envaido temp')
-        time.sleep(120)
+    print('Conectado em' + str(wlan.ifconfig()) + ' às ' + str(time.localtime()))
+
+    timer.init(period=10000, mode=machine.Timer.PERIODIC, callback=pegaTemp)
+    timer.init(period=10000, mode=machine.Timer.PERIODIC, callback=prova)
     
 else:
     print('Time out')
     print('reiniciando')
     machine.reset()
+

@@ -4,14 +4,13 @@ leitos = list()
 
 paciente = Paciente()
 
-paciente.set_n('1')
-paciente.set_ano(2023)
-paciente.set_mes(5)
-paciente.set_dia(15)
-paciente.set_hora(12)
-paciente.set_minuto(25)
-paciente.set_seg(35)
-paciente.set_temp('37')
-
-Paciente.mostraPaciente()
+paciente.set_n()
+paciente.set_ano()
+paciente.set_mes()
+paciente.set_dia()
+paciente.set_hora()
+paciente.set_minuto()
+paciente.set_seg()
+paciente.set_temp()
+paciente.mostraPaciente()
 

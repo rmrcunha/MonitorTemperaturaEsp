@@ -83,14 +83,14 @@ class Paciente(object):
         self.temp = temp
 
     def mostraPaciente(self):
-        print("ID: {}".format(self.get_n()))
-        print("Ano da medição: {}".format(self.get_ano()))
-        print("Mês da medição: {}".format(self.get_mes()))
-        print("Dia da medição: {}".format(self.get_dia()))
-        print("Hora do registro: {}".format(self.get_hora()))
-        print("Minuto do registro: {}".format(self.get_minuto()))
-        print("Segundo do registro: {}".format(self.get_seg()))
-        print("Temperatura: {}".format(self.get_temp()))
-
-
+        paciente_dict = {
+            "ID": self.get_n(),
+            "Ano da medição": self.get_ano(),
+            "Mês da medição": self.get_mes(),
+            "Dia da medição": self.get_dia(),
+            "Hora da medição": self.get_hora(),
+            "Minuto da medição": self.get_minuto(),
+            "Segundo da medição": self.get_seg(),
+            "Temperatura": self.get_temp()
+        }
 

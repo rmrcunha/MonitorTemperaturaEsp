@@ -164,8 +164,3 @@ def push(URL, msg):
 URL = 'monitordetemperatura-ab3b0-default-rtdb/Paciente'
  
 print('Pronto')
-
-
-
-
-
