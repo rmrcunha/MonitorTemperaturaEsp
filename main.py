@@ -5,38 +5,54 @@ from machine import Pin
 import network
 import onewire
 import time
+import ds18x20
 import utime
+import gc
 
-def pegaTemp(timer):
-    data8x8 = amg.pixel()
-    print(str(data8x8))
-    firebase.push(URL,str(data8x8))
-    print('Enviando temp')
-    gc.collect()
-    
-
-def dsx(pino):
-    dat = machine.Pin(pino)
-    ow = onewire.OneWire(dat)
-    global ds
-    ds = ds18x20.DS18X20(ow)
-    global roms
-    roms = ds.scan()
-
-def prova():
-    return ds.read_temp(roms[0])
-
-timer = machine.Timer(0)
+dat = machine.Pin(16)
+sda_pin = machine.Pin(21)
+scl_pin = machine.Pin(22)
 
 def E(pino):
     v = machine.Pin(pino, machine.Pin.OUT)
     v.value(1)
-    print('Pino {pino} utilizado como alimentação!');
+    print('Pino ' + str(pino) + ' utilizado como alimentação!');
 
 E(18)
 
-sda_pin = machine.Pin(21)
-scl_pin = machine.Pin(22)
+def pegaTemp():
+    print('Infravermelho acionado')
+    data8x8 = amg.pixel()
+    print(str(data8x8))
+    #firebase.push(URL + "/temp8x8" ,str(data8x8))
+    print('Enviando temp')
+    
+def init_ds18b20():
+    ow = onewire.OneWire(dat)
+    ds = ds18x20.DS18X20(ow)
+    roms = ds.scan()
+    return ds, roms
+
+def read_temperature(ds, rom):
+    ds.convert_temp()
+    time.sleep_ms(750)
+    return ds.read_temp(rom)
+
+ds, roms = init_ds18b20()
+
+def proof():
+    print('ds18b20 acionado')
+    for rom in roms:     
+        temperature = read_temperature(ds, rom)
+        print('Temperatura:', str(temperature), 'ºC')
+        #firebase.push(URL + "/prova", str(temperature))
+        gc.collect()
+
+timer = machine.Timer(0)
+
+def callbackTemps(timer):
+    pegaTemp()
+    proof()
 
 i2c = machine.I2C(scl = scl_pin,sda = sda_pin)
 
@@ -55,32 +71,34 @@ timeout = 0
 wlan = network.WLAN(network.STA_IF)
 
 def restartWlan():
+    print('Definindo wlan')
     wlan.active(False)
     time.sleep(0.5)
     wlan.active(True)
 
 restartWlan()
-nomeRede =''
-senhaRede = ''
+nomeRede ='CunhaClaro'
+senhaRede = '26160903'
 wlan.connect(nomeRede,senhaRede)
 URL = 'monitordetemperatura-ab3b0-default-rtdb/Paciente'
 
 if not wlan.isconnected():
-    print('conectando...')
+    print('conectando em ' + nomeRede + '...')
     while (not wlan.isconnected() and timeout < 5):
         print(5-timeout)
         timeout = timeout + 1
         time.sleep(1)
     
-
 if wlan.isconnected():
     print('Conectado em' + str(wlan.ifconfig()) + ' às ' + str(time.localtime()))
 
-    timer.init(period=10000, mode=machine.Timer.PERIODIC, callback=pegaTemp)
-    timer.init(period=10000, mode=machine.Timer.PERIODIC, callback=prova)
+    timer.init(period=1000, mode=machine.Timer.PERIODIC, callback=callbackTemps)
     
+    while True:
+        gc.collect()
+        print('Lixo coletado')
+
 else:
     print('Time out')
     print('reiniciando')
     machine.reset()
-
